@@ -1,58 +1,144 @@
-import streamlit as st
-import time
+import os
+import json
+from dotenv import load_dotenv
+from crewai import Agent, Task, Crew, Process
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.tools import tool
 
-# Set up the page layout
-st.set_page_config(page_title="Autonomous Procurement AI", page_icon="📦", layout="centered")
+# ==========================================
+# LOAD ENV
+# ==========================================
+load_dotenv()
 
-# Customizing the header
-st.title("📦 Autonomous Procurement Agent")
-st.markdown("""
-Welcome to the Digital Assembly Line. Enter your purchase request below, and our multi-agent AI will autonomously handle intake, vendor discovery, and compliance checks.
-""")
-st.divider()
-
-# The Chat Input Interface
-st.subheader("New Purchase Request")
-user_input = st.text_area(
-    "Describe what you need to buy:", 
-    placeholder="e.g., I need 50 Dell monitors for the engineering team by next week. The budget is $15,000.",
-    height=100
+# ==========================================
+# LLM SETUP
+# ==========================================
+llm = ChatGoogleGenerativeAI(
+    model="gemini-1.5-flash",
+    temperature=0
 )
 
-# The Execution Block
-if st.button("🚀 Process Request", type="primary", use_container_width=True):
-    if not user_input:
-        st.warning("Please enter a request first!")
-    else:
-        # This creates a cool animated dropdown showing the agents working
-        with st.status("Robotic Agents Initializing...", expanded=True) as status:
-            
-            st.write("🕵️‍♂️ **Intake Agent:** Analyzing request and extracting parameters...")
-            time.sleep(2) # Fake delay for visual effect
-            st.success("Intake complete: Extracted JSON data.")
-            
-            st.write("🔍 **Discovery Agent:** Searching internal vendor database...")
-            time.sleep(2)
-            st.success("Discovery complete: Found 2 matching vendors.")
-            
-            status.update(label="Workflow Complete!", state="complete", expanded=False)
+# ==========================================
+# TOOL: Vendor Search
+# ==========================================
+@tool("Search Vendor Database")
+def search_vendors(category: str) -> str:
+    """Search internal vendor database by category."""
+    try:
+        with open('data/vendors.json', 'r') as file:
+            vendors = json.load(file)
 
-        # Mock Final Output (We will connect the REAL AI output here in Sprint 2)
-        st.divider()
-        st.subheader("✅ Final Procurement Recommendation")
-        
-        st.markdown("""
-        **Category Found:** Electronics
-        
-        **Recommended Vendors:**
-        1. **TechSupply Co.** (Compliance Score: 98, Delivery: 3 days)
-        2. **Global Monitors Inc.** (Compliance Score: 60, Delivery: 14 days)
-        
-        *Action Required:* Awaiting human approval to generate Purchase Order.
-        """)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.button("✅ Approve & Generate PO", use_container_width=True)
-        with col2:
-            st.button("❌ Reject Request", use_container_width=True)
+        results = [
+            v for v in vendors 
+            if v.get('category', '').lower() == category.lower()
+        ]
+
+        return json.dumps(results, indent=2) if results else "No vendors found."
+
+    except Exception as e:
+        return f"Error reading database: {str(e)}"
+
+
+# ==========================================
+# MAIN FUNCTION
+# ==========================================
+def run_procurement_ai(user_request: str):
+
+    # -------- AGENT 1 --------
+    intake_agent = Agent(
+        role='Procurement Intake Specialist',
+        goal='Extract structured procurement details from user input.',
+        backstory='Expert in converting natural language into structured JSON.',
+        llm=llm,
+        verbose=True,
+        allow_delegation=False
+    )
+
+    intake_task = Task(
+        description=f"""
+        Analyze the user request below and extract structured data.
+
+        REQUEST:
+        "{user_request}"
+
+        OUTPUT FORMAT (STRICT JSON):
+        {{
+            "item": "",
+            "quantity": "",
+            "budget": "",
+            "department": "",
+            "category": ""
+        }}
+
+        Only return JSON. No explanation.
+        """,
+        expected_output="Valid JSON only.",
+        agent=intake_agent
+    )
+
+    # -------- AGENT 2 --------
+    discovery_agent = Agent(
+        role='Vendor Discovery Specialist',
+        goal='Find best vendors using internal database.',
+        backstory='Expert in vendor sourcing and evaluation.',
+        tools=[search_vendors],
+        llm=llm,
+        verbose=True,
+        allow_delegation=False
+    )
+
+    discovery_task = Task(
+        description="""
+        Use the JSON output from the intake agent.
+
+        Steps:
+        1. Extract the "category"
+        2. Call "Search Vendor Database"
+        3. Return structured result:
+
+        {
+            "vendors": [
+                {
+                    "name": "",
+                    "compliance_score": "",
+                    "delivery_days": ""
+                }
+            ]
+        }
+
+        Only return JSON.
+        """,
+        expected_output="JSON list of vendors.",
+        agent=discovery_agent
+    )
+
+    # -------- CREW --------
+    crew = Crew(
+        agents=[intake_agent, discovery_agent],
+        tasks=[intake_task, discovery_task],
+        process=Process.sequential
+    )
+
+    try:
+        result = crew.kickoff()
+
+        # Try parsing result safely
+        try:
+            return json.loads(result)
+        except:
+            return {"raw_output": result}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# ==========================================
+# TEST RUN
+# ==========================================
+if __name__ == "__main__":
+    sample_request = "I need 50 Dell monitors for the engineering team by next week. Budget is 15000."
+
+    output = run_procurement_ai(sample_request)
+
+    print("\nFINAL OUTPUT:\n")
+    print(json.dumps(output, indent=2))
