@@ -1,6 +1,70 @@
-[
-  {"vendor": "Dell", "price": 45000, "rating": 4.5},
-  {"vendor": "HP", "price": 47000, "rating": 4.3},
-  {"vendor": "Lenovo", "price": 43000, "rating": 4.6},
-  {"vendor": "Asus", "price": 42000, "rating": 4.2}
-]
+{
+  "vendors": [
+    {
+      "id": "v1",
+      "name": "Paramount Computers (SP Road)",
+      "category": "Tech",
+      "product": "HP ProBook Business G10",
+      "unit_price": 54990,
+      "trust_score": 98,
+      "location": "SP Road, Bengaluru",
+      "link": "https://business.amazon.in/",
+      "lead_time": "2 Days"
+    },
+    {
+      "id": "v2",
+      "name": "Systech Services (B2B Hub)",
+      "category": "Tech",
+      "product": "Dell Latitude 3540",
+      "unit_price": 58200,
+      "trust_score": 92,
+      "location": "Malleswaram, Bengaluru",
+      "link": "https://corpkart.com/",
+      "lead_time": "3 Days"
+    },
+    {
+      "id": "v3",
+      "name": "Featherlite (HSR Layout)",
+      "category": "Furniture",
+      "product": "Amaze High-Back Mesh Chair",
+      "unit_price": 12239,
+      "trust_score": 99,
+      "location": "HSR Layout, Bengaluru",
+      "link": "https://featherlitestore.com/",
+      "lead_time": "5 Days"
+    },
+    {
+      "id": "v4",
+      "name": "Mahaveer Furniture",
+      "category": "Furniture",
+      "product": "Executive Ergo Chair",
+      "unit_price": 6800,
+      "trust_score": 81,
+      "location": "Commercial St, Bengaluru",
+      "link": "https://www.woodenstreet.com/",
+      "lead_time": "1 Day"
+    },
+    {
+      "id": "v5",
+      "name": "Marudhar Stationers",
+      "category": "Stationery",
+      "product": "Premium Notebook Bulk (Pack of 50)",
+      "unit_price": 4500,
+      "trust_score": 95,
+      "location": "Avenue Road, Bengaluru",
+      "link": "https://www.indiamart.com/",
+      "lead_time": "1 Day"
+    },
+    {
+      "id": "v6",
+      "name": "Willsmeet B2B",
+      "category": "Stationery",
+      "product": "Corporate Branding Kit",
+      "unit_price": 1200,
+      "trust_score": 88,
+      "location": "Electronic City, Bengaluru",
+      "link": "https://www.indiamart.com/",
+      "lead_time": "4 Days"
+    }
+  ]
+}
