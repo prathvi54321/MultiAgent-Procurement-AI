@@ -72,13 +72,14 @@ discovery_task = Task(
 if __name__ == "__main__":
     sample_request = "I need 50 Dell monitors for the engineering team by next week. The budget is 15000."
     
+def run_procurement_ai(user_request):
+    """This function will be called by Prajwal's UI"""
     procurement_crew = Crew(
         agents=[intake_agent, discovery_agent],
         tasks=[intake_task, discovery_task],
         process=Process.sequential
     )
     
-    result = procurement_crew.kickoff(inputs={'user_request': sample_request})
-    
-    print("\n✅ === FINAL PIPELINE OUTPUT === ✅")
-    print(result)
+    # Execute the AI logic
+    result = procurement_crew.kickoff(inputs={'user_request': user_request})
+    return result
