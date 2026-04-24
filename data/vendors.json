@@ -1,0 +1,6 @@
+[
+  {"vendor": "Dell", "price": 45000, "rating": 4.5},
+  {"vendor": "HP", "price": 47000, "rating": 4.3},
+  {"vendor": "Lenovo", "price": 43000, "rating": 4.6},
+  {"vendor": "Asus", "price": 42000, "rating": 4.2}
+]
